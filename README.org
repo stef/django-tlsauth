@@ -1,0 +1,85 @@
+settings in demo/local_settings.py
+
+* Django-TLSAuth
+
+Django-TLSAuth integrates a minimal certificate authority (CA) and
+implements TLS client certificate authentication. It depends on nginx
+for handling the TLS authentication part.
+
+** Installation
+#+BEGIN_SRC sh
+   pip install django_tlsauth
+#+END_SRC
+   Django-TLSAuth depends on tlsauth which provides minimal tools to
+   act as a CA. Please follow the "CA and https service install" steps
+   from https://github.com/stef/tlsauth to set up your webserver and CA.
+
+   After setting up the CA, you should also configure it in django,
+   put something like this with adjusted paths into your settings.py:
+#+BEGIN_SRC python
+from tlsauth import CertAuthority
+
+TLS_CA=CertAuthority('tlsauth/CA/public/root.pem',
+                     'tlsauth/CA/private/root.pem',
+                     'tlsauth/CA/conf/serial',
+                     'tlsauth/CA/dummy.pem',
+                     'http://www.example.com/crl.pem',
+                     'tlsauth/CA/incoming',
+                     )
+TLS_ADMINGROUPS=['CA admins']
+TLS_SCRUTINIZER=None # supply your own function authorizing automatic signatures
+TLS_BLINDSIGN=False  # blindly sign incoming CSRs
+#+END_SRC
+
+   If you want to enable the admin to the mini-CA add to your urls.py
+#+BEGIN_SRC python
+url(r'^tlsauth/', include('django_tlsauth.urls')),
+#+END_SRC
+
+
+** tlsauth decorator
+Django-TLSAuth provides a simple decorator to guard your entry points:
+#+BEGIN_SRC python
+from django.http import HttpResponse, HttpResponseRedirect
+from django_tlsauth.views import tlsauth
+
+def unauth(request):
+    return HttpResponseRedirect('/')
+
+@tlsauth(unauth=unauth, groups=['helloworldophobians'])
+def hello(request):
+    return HttpResponse("hello world")
+#+END_SRC
+
+** Managing certs
+Django-TLSAuth provides a few default routes to manage the certs and
+the CA.
+
+*** /tlsauth/register/
+Visitors can register like on a normal site, but when done, they get a
+PKCS12 certificate ready to be saved and imported in all
+browsers. This is totally automatic and there's no check if the
+specified organization is not a privileged one (like "CA admins" in
+the above example). This really provides no security, for bots and
+scripts it's even easier to use these certs than for normal humans.
+Other mechanisms must be deployed to provide meaningful authentication.
+
+*** /tlsauth/certify/
+Visitors can submit their Certificate Signing Request (can be easily
+generated using gencert.sh from tlsauth), which depending on
+configuration either returns automatically a signed certificate (no
+meaningful authentication this way, avoid this!), or it gets stored
+for later approval by the "CA admins".
+
+*** /tlsauth/cert/
+Returns the CA root certificate in PEM format, for import into your browser.
+
+
+*** /tlsauth/csrs/
+Displays a list of incoming CSRs to any certified member of the "CA
+admin" group. The certs can be either rejected or signed, in the later
+case the resulting certificate is sent to the email address of the
+subject.
+
+*** /tlsauth/test/
+Displays whether you are TLS authenticated and what your distinguished name is.
