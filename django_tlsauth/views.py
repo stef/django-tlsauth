@@ -85,7 +85,6 @@ def reject(request, id):
 def authenticated(request, groups):
     """ helper function to check if user is authenticated and in a given group.
     """
-    return
     if not request.META.get('verified')=="SUCCESS" or (groups and todn(request.META.get('dn')).get('O') not in settings.TLS_ADMINGROUPS):
         return HttpResponse("Forbidden",status=403)
 
