@@ -1,5 +1,3 @@
-settings in demo/local_settings.py
-
 * Django-TLSAuth
 
 Django-TLSAuth integrates a minimal certificate authority (CA) and
