@@ -17,13 +17,7 @@ for handling the TLS authentication part.
 #+BEGIN_SRC python
 from tlsauth import CertAuthority
 
-TLS_CA=CertAuthority('tlsauth/CA/public/root.pem',
-                     'tlsauth/CA/private/root.pem',
-                     'tlsauth/CA/conf/serial',
-                     'tlsauth/CA/dummy.pem',
-                     'http://www.example.com/crl.pem',
-                     'tlsauth/CA/incoming',
-                     )
+TLS_CA=CertAuthority('<path-to-CA>')
 TLS_ADMINGROUPS=['CA admins']
 TLS_SCRUTINIZER=None # supply your own function authorizing automatic signatures
 TLS_BLINDSIGN=False  # blindly sign incoming CSRs
@@ -33,7 +27,6 @@ TLS_BLINDSIGN=False  # blindly sign incoming CSRs
 #+BEGIN_SRC python
 url(r'^tlsauth/', include('django_tlsauth.urls')),
 #+END_SRC
-
 
 ** tlsauth decorator
 Django-TLSAuth provides a simple decorator to guard your entry points:
@@ -71,7 +64,6 @@ for later approval by the "CA admins".
 
 *** /tlsauth/cert/
 Returns the CA root certificate in PEM format, for import into your browser.
-
 
 *** /tlsauth/csrs/
 Displays a list of incoming CSRs to any certified member of the "CA

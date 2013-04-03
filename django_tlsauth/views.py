@@ -4,7 +4,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.conf import settings
 from django.template import RequestContext
-from tlsauth import todn, gencert, mailsigned, load
+from tlsauth import todn, mailsigned, load
 import os, datetime
 from forms import UserForm, CSRForm
 
@@ -33,10 +33,9 @@ def renderUserForm(request):
     form = UserForm(request.POST)
     if form.is_valid():
         return HttpResponse(
-            gencert(str(form.cleaned_data['name']),
-                    str(form.cleaned_data['email']),
-                    str(form.cleaned_data['org']),
-                    settings.TLS_CA),
+            settings.TLS_CA.gencert(str(form.cleaned_data['name']),
+                                    str(form.cleaned_data['email']),
+                                    str(form.cleaned_data['org'])),
             mimetype="application/x-pkcs12")
     return render_to_response('register.html', {'form':form},context_instance=RequestContext(request) )
 
